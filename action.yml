@@ -1,0 +1,46 @@
+name: 'Wait for AWS CodeDeploy Deployment'
+description: >-
+  Wait for an AWS CodeDeploy deployment to finish. Will poll the CodeDeploy API until the deployment is finished or
+  failed.
+
+branding:
+  icon: 'activity'
+  color: 'white'
+
+inputs:
+  codedeploy-deployment-id:
+    description: 'The ID of the CodeDeploy deployment to check.'
+    required: true
+
+  sleep-between-requests:
+    description: 'How many seconds to sleep between requests to the CodeDeploy API to check the status.'
+    required: false
+    default: '5'
+
+runs:
+  using: "composite"
+  steps:
+    - shell: bash
+      id: wait-for-deployment
+      run: |
+        while true; do
+          STATUS=$(aws deploy get-deployment --deployment-id "${{ inputs.codedeploy-deployment-id }}" | jq -r '.deploymentInfo.status')
+          echo "$(date +%Y-%m-%dT%H:%M:%S): The deployment is currently in the status: $STATUS"
+
+          case $STATUS in
+            # Retry on these status
+            Created|Queued|InProgress|Baking) 
+              sleep ${{ inputs.sleep-between-requests }} 
+              ;;
+
+            # Success on these status
+            Ready|Succeeded)
+              exit 0
+              ;;
+
+            # Any other status indicates failure
+            *)
+              exit 1
+              ;;
+          esac
+        done
