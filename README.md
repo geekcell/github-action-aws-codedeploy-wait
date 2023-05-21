@@ -27,7 +27,7 @@ Wait for an AWS CodeDeploy deployment to finish. Will poll the CodeDeploy API un
 
 ## Wait for ECS Blue Deployment
 - name: Wait for blue instances to be ready
-  uses: github-action-aws-codedeploy-wait@v1.0.0
+  uses: geekcell/github-action-aws-codedeploy-wait@v1.0.0
   with:
     codedeploy-deployment-id: steps.deploy-ecs.outputs.codedeploy-deployment-id
 
